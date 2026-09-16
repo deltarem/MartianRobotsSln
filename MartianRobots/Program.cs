@@ -10,7 +10,7 @@ namespace MartianRobots
         static void Main(string[] args)
         {
 
-            Console.WriteLine("Enter text. When finished, press Enter on the last line, then Ctrl+Z, then Enter." );
+            Console.WriteLine("Enter instructions. When finished, press Enter on the last line, then Ctrl+Z, then Enter." );
 
             string input = Console.In.ReadToEnd();
 
