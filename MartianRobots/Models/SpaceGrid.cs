@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace MartianRobots.Models
+{
+    public class SpaceGrid
+    {
+        private int spaceGridMaxX = 50;
+        private int spaceGridMaxY = 50;
+
+        public int MaxX { get; private set; }
+        public int MaxY { get; private set; }
+
+        public SpaceGrid(int maxX, int maxY)
+        {
+
+            if (maxX < 0 || maxY < 0)
+            {
+                throw new ArgumentException("Grid dimensions must be non-negative.");
+            }
+            if (maxX > spaceGridMaxX || maxY > spaceGridMaxY)
+            {
+                throw new ArgumentException($"Grid dimensions must not exceed {spaceGridMaxX}x{spaceGridMaxY}.");
+            }
+
+            MaxX = maxX;
+            MaxY = maxY;
+        }
+
+    }
+}
