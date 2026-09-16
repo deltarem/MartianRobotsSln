@@ -29,9 +29,9 @@ namespace MartianRobots.Models
             Direction = initDirection;
         }
 
-        public void UpdateIsLost(bool isLost)
+        public void UpdateIsLost()
         {
-            IsLost = isLost;
+            IsLost = true;
         }
 
         public void TurnLeft()

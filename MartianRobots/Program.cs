@@ -10,12 +10,13 @@ namespace MartianRobots
         static void Main(string[] args)
         {
 
-            string inputInstructions = $"5 3{Environment.NewLine}1 1 E{Environment.NewLine}RFRFRFRF";
-            using var reader = new StringReader(inputInstructions);
+            string sampleInstructions = "5 3\n3 2 N\nFRRFLLFFRRFLL";
+            var parsedInstructions = InstructionParser.Parse(sampleInstructions);
 
             RobotSimulator robotSimulator = new RobotSimulator();
-         
-            Console.WriteLine(robotSimulator.Execute(reader.ReadLine(), reader.ReadLine(), reader.ReadLine()));
+            var output = robotSimulator.Execute(parsedInstructions.gridSize, parsedInstructions.robots);
+
+            Console.WriteLine(output);
         }
 
       

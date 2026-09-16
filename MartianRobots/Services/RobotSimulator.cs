@@ -10,23 +10,20 @@ namespace MartianRobots.Services
     public class RobotSimulator
     {
 
-        public SpaceGrid CreateSpaceGrid(string gridSize)
+        public SpaceGrid CreateSpaceGrid((int, int) gridSize)
         {
-            var gridSizeParts = gridSize.Split(' ');
-            int gridWidth = int.Parse(gridSizeParts[0]);
-            int gridHeight = int.Parse(gridSizeParts[1]);
+            int gridWidth = gridSize.Item1;
+            int gridHeight = gridSize.Item2;
             // Create a new SpaceGrid instance
             var spaceGrid = new SpaceGrid(gridWidth, gridHeight);
 
             return spaceGrid;
         }
 
-        public Robot CreateRobot(string robotPosition)
+        public Robot CreateRobot(int robotX, int robotY, string direction)
         {
-            var robotPositionParts = robotPosition.Split(' ');
-            int robotX = int.Parse(robotPositionParts[0]);
-            int robotY = int.Parse(robotPositionParts[1]);
-            DirectionEnum robotDirection = Enum.Parse<DirectionEnum>(robotPositionParts[2]);
+  
+            DirectionEnum robotDirection = Enum.Parse<DirectionEnum>(direction);    
             // Create a new Robot instance
             var robot = new Robot(new Coordinate(robotX, robotY), robotDirection);
 
@@ -34,17 +31,29 @@ namespace MartianRobots.Services
         }
 
  
-        public string Execute(string gridSize, string robotPosition, string commandSequence)
+        public string Execute((int, int) gridSize, ((int robotX, int robotY, string robotDirection) robotPosition, string commandSequence)[] robots)
         {
             SpaceGrid spaceGrid = CreateSpaceGrid(gridSize);
-            Robot robot = CreateRobot(robotPosition);
+            string result = string.Empty;
 
-            foreach (char commandChar in commandSequence)
+            foreach (var robotData in robots)
             {
-
-                RobotCommands.GetCommand(commandChar).Execute(robot, spaceGrid);
+                var (robotPosition, commandSequence) = robotData;
+                Robot robot = CreateRobot(robotPosition.robotX, robotPosition.robotY, robotPosition.robotDirection);
+                foreach (char commandChar in commandSequence)
+                {
+                    RobotCommands.GetCommand(commandChar).Execute(robot, spaceGrid);
+                    
+                   // Console.WriteLine($"Robot Position: {robot.Position.x}, {robot.Position.y}, Direction: {robot.Direction}, IsLost: {robot.IsLost}");
+                    if (robot.IsLost)
+                    {
+                        break;
+                    }
+                }
+                result += $"{robot.Position.x} {robot.Position.y} {robot.Direction}" + (robot.IsLost ? " LOST" : "") + "\n";
             }
-            return $"{robot.Position.x} {robot.Position.y} {robot.Direction}" + (robot.IsLost ? " LOST" : "");
+            
+            return result.TrimEnd('\n');
         }
 
     }
