@@ -10,12 +10,16 @@ namespace MartianRobots
         static void Main(string[] args)
         {
 
-            string sampleInstructions = "5 3\n3 2 N\nFRRFLLFFRRFLL";
-            var parsedInstructions = InstructionParser.Parse(sampleInstructions);
+            Console.WriteLine("Enter text. When finished, press Enter on the last line, then Ctrl+Z, then Enter." );
+
+            string input = Console.In.ReadToEnd();
+
+            var parsedInstructions = InstructionParser.Parse(input);
 
             RobotSimulator robotSimulator = new RobotSimulator();
             var output = robotSimulator.Execute(parsedInstructions.gridSize, parsedInstructions.robots);
 
+            Console.WriteLine("The output is:");
             Console.WriteLine(output);
         }
 
