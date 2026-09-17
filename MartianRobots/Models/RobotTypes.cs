@@ -8,7 +8,7 @@ namespace MartianRobots.Models
  
     public sealed record GridSize(int X, int Y);
     public sealed record RobotInstruction(Coordinate Coordinate, Direction Direction, string Commands);
-    public sealed record SimulationInput(GridSize Grid, IReadOnlyList<RobotInstruction> Robots);
+    public sealed record SimulationInput(SpaceGrid SpaceGrid, IReadOnlyList<RobotInstruction> Robots);
 
     public sealed record RobotResult(Coordinate Position, Direction Direction, bool IsLost)
     {

@@ -14,25 +14,23 @@ namespace MartianRobots.Services
         {
             var results = new List<RobotResult>(simulationInput.Robots.Count);
 
-            SpaceGrid spaceGrid = new SpaceGrid(simulationInput.Grid.X, simulationInput.Grid.Y);
+            SpaceGrid spaceGrid = simulationInput.SpaceGrid;
             
             foreach (var robotInstruction in simulationInput.Robots)
             {
                 Robot robot = new Robot(robotInstruction.Coordinate, robotInstruction.Direction);
-                foreach (char commandChar in robotInstruction.Commands)
-                {
-                    RobotCommands.GetCommand(commandChar).Execute(robot, spaceGrid);
-                    
-                    if (robot.IsLost)
-                    {
-                        break;
-                    }
-                }
+     
+                foreach (var robotCommand in robotInstruction.Commands)
+                    robot.Execute(RobotCommands.GetCommand(robotCommand), spaceGrid);
+
                 results.Add(new RobotResult(robot.Position, robot.Direction, robot.IsLost));
             }
             
             return results; 
         }
 
+    
+
     }
+
 }

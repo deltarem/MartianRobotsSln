@@ -1,4 +1,5 @@
-﻿using MartianRobots.Models;
+﻿using MartianRobots.Interfaces;
+using MartianRobots.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,20 +10,19 @@ namespace MartianRobots.Commands
     {
         public void Execute(Robot robot, SpaceGrid spaceGrid)
         {
-            var nextPosition = robot.NextPosition();
+            var next = robot.NextPosition();
 
-            if (spaceGrid.IsOutOfBounds(nextPosition))
+            if (!spaceGrid.IsOutOfBounds(next))
             {
-                if (!spaceGrid.HasScent(robot.Position))
-                {
-                    spaceGrid.AddScent(robot.Position);
-                    robot.UpdateIsLost();
-                }
+                robot.MoveTo(next);
+                return;
             }
-            else
-            {
-                robot.MoveTo(nextPosition);
-            }
+
+            if (spaceGrid.HasScent(robot.Position))
+                return;                          // scented square: ignore the instruction
+
+            spaceGrid.AddScent(robot.Position);
+            robot.UpdateIsLost();
 
         }
     }

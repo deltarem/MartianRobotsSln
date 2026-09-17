@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace MartianRobots.Commands
+namespace MartianRobots.Interfaces
 {
     public interface IRobotCommand
     {

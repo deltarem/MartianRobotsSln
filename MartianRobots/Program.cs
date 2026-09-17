@@ -5,25 +5,29 @@ using System.Reflection.PortableExecutable;
 using static System.Net.Mime.MediaTypeNames;
 namespace MartianRobots
 {
-    internal class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
+
+        
+            if (!Console.IsInputRedirected)
+            {
+                var eof = OperatingSystem.IsWindows() ? "Ctrl+Z then Enter" : "Ctrl+D";
+                Console.Error.WriteLine($"Enter instructions, then press {eof} to finish.");
+            }
 
             try
             {
-                Console.WriteLine("Enter instructions. When finished, press Enter on the last line, then Ctrl+Z, then Enter.");
-
-
-                var parsedInstructions = InstructionParser.Parse(Console.In.ReadToEnd());
-                var results = new RobotSimulator().Execute(parsedInstructions);
-
-                Console.WriteLine("The output is:");
+                var input = InstructionParser.Parse(Console.In.ReadToEnd());
+                var results = new RobotSimulator().Execute(input);
                 Console.WriteLine(OutputFormatter.Format(results));
+                return 0;
             }
             catch (InvalidInputException ex)
             {
                 Console.Error.WriteLine($"Invalid input. {ex.Message}");
+                return 1;
             }
         }
 

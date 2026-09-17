@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MartianRobots.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.CompilerServices;
@@ -25,13 +26,20 @@ namespace MartianRobots.Models
         {
             IsLost = true;
         }
-        
+
+
+        /// <summary>Runs a command against this robot. A lost robot ignores all further commands.</summary>
+        public void Execute(IRobotCommand robotCommand, SpaceGrid grid)
+        {
+            if (IsLost) return;
+            robotCommand.Execute(this, grid);
+        }
 
         public void TurnLeft() => Direction = Direction.TurnLeft();
         public void TurnRight() => Direction = Direction.TurnRight();
         public Coordinate NextPosition() => Direction.GetNextPosition(Position);
         public void MoveTo(Coordinate position) => Position = position;
-        public void MarkLost() => IsLost = true;
+     
 
     }
 }

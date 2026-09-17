@@ -1,4 +1,5 @@
-﻿using MartianRobots.Models;
+﻿using MartianRobots.Commands;
+using MartianRobots.Models;
 using MartianRobots.Services;
 using System.Reflection.PortableExecutable;
 namespace MartianRobotsTest
@@ -70,6 +71,33 @@ namespace MartianRobotsTest
             var input = "5  3\r\n\r\n1 1   E\r\nRFRFRFRF\r\n";
             var parsed = InstructionParser.Parse(input);
             Assert.Equal(new Coordinate(1, 1), parsed.Robots[0].Coordinate);
+        }
+
+        [Fact]
+        public void LostRobot_IgnoresFurtherCommands()
+        {
+            var grid = new SpaceGrid(1, 1);
+            var robot = new Robot(new Coordinate(1, 1), Direction.N);
+
+            robot.Execute(RobotCommands.GetCommand('F'), grid);   // falls off the top edge
+            robot.Execute(RobotCommands.GetCommand('L'), grid);   // must be ignored
+            robot.Execute(RobotCommands.GetCommand('F'), grid);   // must be ignored
+
+            Assert.True(robot.IsLost);
+            Assert.Equal(Direction.N, robot.Direction);
+            Assert.Equal(new Coordinate(1, 1), robot.Position);
+            Assert.True(grid.HasScent(new Coordinate(1, 1)));
+        }
+
+        [Fact]
+        public void Simulator_StopsProcessingAfterRobotIsLost()
+        {
+            var input = InstructionParser.Parse("1 1\n1 1 N\nFLLF");   // F=lost, LLF must be ignored
+            var result = new RobotSimulator().Execute(input).Single();
+
+            Assert.True(result.IsLost);
+            Assert.Equal(Direction.N, result.Direction);
+            Assert.Equal(new Coordinate(1, 1), result.Position);
         }
     }
    

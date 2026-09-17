@@ -18,16 +18,8 @@ namespace MartianRobots.Services
             if (lines.Count == 0)
                 throw new InvalidInputException(1, "Instructions are empty");
 
-          
-            var gridSizeParts = lines[0].Text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-            if (gridSizeParts.Length != 2)
-            {
-                throw new InvalidInputException(1, $"expected 'maxX maxY', got '{lines[0]}'");
-            }
-           
 
-            GridSize gridSize = new GridSize(ParseInt(gridSizeParts[0], lines[0].Number, "X"), ParseInt(gridSizeParts[1], lines[0].Number, "Y"));
-
+            var spaceGrid = ParseGrid(lines[0]);
 
             var robotLines = lines.Skip(1).ToList();
             if (robotLines.Count % 2 != 0)
@@ -38,15 +30,33 @@ namespace MartianRobots.Services
 
             var robots = new List<RobotInstruction>(robotLines.Count / 2);
             for (var i = 0; i < robotLines.Count; i += 2)
-                robots.Add(ParseRobot(robotLines[i], robotLines[i + 1], gridSize));
+                robots.Add(ParseRobot(robotLines[i], robotLines[i + 1], spaceGrid));
+            return new SimulationInput(spaceGrid, robots);
+        }
 
-            return new SimulationInput(gridSize, robots);
+        private static SpaceGrid ParseGrid((int Number, string Text) line)
+        {
+            var parts = line.Text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2)
+                throw new InvalidInputException(line.Number, $"expected 'maxX maxY', got '{line.Text}'");
+
+            var maxX = ParseInt(parts[0], line.Number, "maxX");
+            var maxY = ParseInt(parts[1], line.Number, "maxY");
+
+            try
+            {
+                return new SpaceGrid(maxX, maxY);   // SpaceGrid owns the 0..50 rule
+            }
+            catch (ArgumentException ex)
+            {
+                throw new InvalidInputException(line.Number, ex.Message);
+            }
         }
 
         private static RobotInstruction ParseRobot(
         (int Number, string Text) positionLine,
         (int Number, string Text) commandLine,
-        GridSize gridSize)
+        SpaceGrid spaceGrid)
         {
             var parts = positionLine.Text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 3)
@@ -56,6 +66,10 @@ namespace MartianRobots.Services
             var coordinate = new Coordinate(
                 ParseInt(parts[0], positionLine.Number, "x"),
                 ParseInt(parts[1], positionLine.Number, "y"));
+
+            if (spaceGrid.IsOutOfBounds(coordinate))
+                throw new InvalidInputException(positionLine.Number,
+                    $"start position {coordinate.X} {coordinate.Y} is outside the {spaceGrid.MaxX}x{spaceGrid.MaxY} grid");
 
 
             if (!Enum.TryParse<Direction>(parts[2], ignoreCase: false, out var direction))

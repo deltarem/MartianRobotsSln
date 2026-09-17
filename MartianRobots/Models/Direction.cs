@@ -26,16 +26,24 @@ public static class DirectionExtensions
         _ => throw new ArgumentOutOfRangeException(nameof(d), d, "Unknown direction")
     };
       
-    public static Coordinate GetNextPosition(this Direction d, Coordinate from)
+    public static Coordinate Step(this Direction d, Coordinate pos) => d switch
     {
-        return d switch
-        {
-            Direction.N => new Coordinate(from.X, from.Y + 1),
-            Direction.E => new Coordinate(from.X + 1, from.Y),
-            Direction.S => new Coordinate(from.X, from.Y - 1),
-            Direction.W => new Coordinate(from.X - 1, from.Y),
-            _ => from
-        };
-    }
+        Direction.N => pos with { Y = pos.Y + 1 },
+        Direction.E => pos with { X = pos.X + 1 },
+        Direction.S => pos with { Y = pos.Y - 1 },
+        Direction.W => pos with { X = pos.X - 1 },
+                        _ => throw new ArgumentOutOfRangeException(nameof(d), d, "Unknown direction")
+    };
+
+  
+
+    public static Coordinate GetNextPosition(this Direction d, Coordinate pos) => d switch
+    {
+        Direction.N => pos with { Y = pos.Y + 1 },
+        Direction.E => pos with { X = pos.X + 1 },
+        Direction.S => pos with { Y = pos.Y - 1 },
+        Direction.W => pos with { X = pos.X - 1 },
+        _ => throw new ArgumentOutOfRangeException(nameof(d), d, "Unknown direction")
+    };
 }
 
