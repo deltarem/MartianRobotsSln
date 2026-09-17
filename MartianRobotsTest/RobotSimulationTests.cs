@@ -40,6 +40,37 @@ namespace MartianRobotsTest
             Assert.Equal(expectedOutput, output);
 
         }
+
+        [Theory]
+        [InlineData("", 1, "empty")]
+        [InlineData("5", 1, "maxX maxY")]
+        [InlineData("5 x", 1, "integer")]
+        [InlineData("5 3\n1 1", 2, "Line 2: each robot needs a position line")]
+        [InlineData("5 3\n1 1 Q\nF", 2, "direction")]
+        [InlineData("5 3\n1 1 N\nFXF", 3, "unknown instruction")]
+        [InlineData("5 3\n1 1 N", 2, "followed by")]
+        public void Parse_RejectsBadInput(string input, int line, string messageFragment)
+        {
+            var ex = Assert.Throws<InvalidInputException>(() => InstructionParser.Parse(input));
+            Assert.Equal(line, ex.LineNumber);
+            Assert.Contains(messageFragment, ex.Message);
+        }
+
+        [Fact]
+        public void Parse_RejectsInstructionOf100Chars()
+        {
+            var input = "5 3\n1 1 N\n" + new string('F', 100);
+            var ex = Assert.Throws<InvalidInputException>(() => InstructionParser.Parse(input));
+            Assert.Equal(3, ex.LineNumber);
+        }
+
+        [Fact]
+        public void Parse_AcceptsCrlfAndExtraWhitespace()
+        {
+            var input = "5  3\r\n\r\n1 1   E\r\nRFRFRFRF\r\n";
+            var parsed = InstructionParser.Parse(input);
+            Assert.Equal(new Coordinate(1, 1), parsed.Robots[0].Coordinate);
+        }
     }
    
 }

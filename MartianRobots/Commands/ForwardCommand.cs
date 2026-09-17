@@ -9,7 +9,7 @@ namespace MartianRobots.Commands
     {
         public void Execute(Robot robot, SpaceGrid spaceGrid)
         {
-            var nextPosition = robot.GetNextPosition();
+            var nextPosition = robot.NextPosition();
 
             if (spaceGrid.IsOutOfBounds(nextPosition))
             {

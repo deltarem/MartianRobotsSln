@@ -11,11 +11,11 @@ namespace MartianRobots.Models
     public class Robot
     {
         public Coordinate Position { get; private set; }
-        public DirectionEnum Direction { get; private set; }
+        public Direction Direction { get; private set; }
 
         public bool IsLost { get; private set; } = false;
 
-        public Robot(Coordinate initPosition, DirectionEnum initDirection)
+        public Robot(Coordinate initPosition, Direction initDirection)
         {
             Position = initPosition;
             Direction = initDirection;
@@ -25,45 +25,13 @@ namespace MartianRobots.Models
         {
             IsLost = true;
         }
+        
 
-        public void TurnLeft()
-        {
-            Direction = Direction switch
-            {
-                DirectionEnum.N => DirectionEnum.W,
-                DirectionEnum.W => DirectionEnum.S,
-                DirectionEnum.S => DirectionEnum.E,
-                DirectionEnum.E => DirectionEnum.N,
-                _ => Direction
-            };
-        }
-
-        public void TurnRight()
-        {
-            Direction = Direction switch
-            {
-                DirectionEnum.N => DirectionEnum.E,
-                DirectionEnum.E => DirectionEnum.S,
-                DirectionEnum.S => DirectionEnum.W,
-                DirectionEnum.W => DirectionEnum.N,
-                _ => Direction
-            };
-        }
-
-        public Coordinate GetNextPosition()
-        {
-            return Direction switch
-            {
-                DirectionEnum.N => new Coordinate(Position.X, Position.Y + 1),
-                DirectionEnum.E => new Coordinate(Position.X + 1, Position.Y),
-                DirectionEnum.S => new Coordinate(Position.X, Position.Y - 1),
-                DirectionEnum.W => new Coordinate(Position.X - 1, Position.Y),
-                _ => Position
-            };
-        }
-
-        public void MoveTo(Coordinate newPosition) => Position = newPosition;
-
+        public void TurnLeft() => Direction = Direction.TurnLeft();
+        public void TurnRight() => Direction = Direction.TurnRight();
+        public Coordinate NextPosition() => Direction.GetNextPosition(Position);
+        public void MoveTo(Coordinate position) => Position = position;
+        public void MarkLost() => IsLost = true;
 
     }
 }
