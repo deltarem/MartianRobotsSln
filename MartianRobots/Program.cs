@@ -13,7 +13,7 @@ namespace MartianRobots
         
             if (!Console.IsInputRedirected)
             {
-                var eof = OperatingSystem.IsWindows() ? "Ctrl+Z then Enter" : "Ctrl+D";
+                var eof = OperatingSystem.IsWindows() ? "Enter then Ctrl+Z" : "Ctrl+D";
                 Console.Error.WriteLine($"Enter instructions, then press {eof} to finish.");
             }
 

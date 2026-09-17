@@ -100,7 +100,7 @@ Or run it interactively — the program prints a prompt (to `stderr`, so it neve
 dotnet run --project MartianRobots
 ```
 
-Finish input with `Ctrl+Z` then Enter on Windows, or `Ctrl+D` on Linux/macOS.
+Finish input with Enter then `Ctrl+Z` on Windows, or `Ctrl+D` on Linux/macOS.
 
 Invalid input produces a message like the following on `stderr` and an exit code of `1`:
 
