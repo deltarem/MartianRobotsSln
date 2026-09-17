@@ -4,7 +4,7 @@ using MartianRobots.Services;
 using System.Reflection.PortableExecutable;
 namespace MartianRobotsTest
 {
-    public class RobotSimulationTests
+    public class RobotSimulatorTests
     {
         [Fact]
         public void SampleInstructions_ProducesExpectedOutput()
@@ -98,6 +98,28 @@ namespace MartianRobotsTest
             Assert.True(result.IsLost);
             Assert.Equal(Direction.N, result.Direction);
             Assert.Equal(new Coordinate(1, 1), result.Position);
+        }
+
+        [Fact]
+        public void ScentPreventsSecondRobotFromFallingOffSameEdge()
+        {
+            var input = InstructionParser.Parse("1 1\n1 1 N\nF\n1 1 N\nFL");
+            var results = new RobotSimulator().Execute(input).ToArray();
+
+            Assert.True(results[0].IsLost);
+            Assert.False(results[1].IsLost);
+            Assert.Equal(Direction.W, results[1].Direction);   // F ignored, L still applied
+            Assert.Equal(new Coordinate(1, 1), results[1].Position);
+        }
+
+        [Fact]
+        public void Robots_AreProcessedSequentially_ScentPersistsAcrossRobots()
+        {
+            // Robot 1 falls off at (0,0) facing S; robots 2 and 3 both survive the same edge.
+            var input = InstructionParser.Parse("2 2\n0 0 S\nF\n0 0 S\nF\n0 0 S\nFF");
+            var results = new RobotSimulator().Execute(input);
+
+            Assert.Equal([true, false, false], results.Select(r => r.IsLost));
         }
     }
    

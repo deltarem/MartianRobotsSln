@@ -9,8 +9,8 @@ namespace MartianRobots.Models
 
     public class SpaceGrid
     {
-        private int spaceGridMaxX = 50;
-        private int spaceGridMaxY = 50;
+        public int spaceGridMaxX = 50;
+        public int spaceGridMaxY = 50;
 
         public int MaxX { get; private set; }
         public int MaxY { get; private set; }

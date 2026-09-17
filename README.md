@@ -27,11 +27,11 @@ A robot that moves off the grid is **lost** forever, and the program reports its
 ...
 ```
 
-Blank lines are ignored.
+Blank lines are ignored. Tokens on a line may be separated by any amount of whitespace. Both `\n` and `\r\n` line endings are accepted.
 
 ## Output format
 
-One line per robot, in input order: the final `x y direction`, with ` LOST` appended if the robot fell off the grid.
+One line per robot, in input order: the final `x y direction`, with ` LOST` appended if the robot fell off the grid. Output lines are separated by `\n` on every platform so that piped output is byte-for-byte comparable with expected files.
 
 ## Example
 
@@ -55,105 +55,120 @@ Output:
 2 3 S
 ```
 
+## Assumptions
+
+The brief leaves a few things open. These are the calls I made:
+
+| Situation | Decision |
+|---|---|
+| Robot's start position is outside the grid | Treated as **invalid input** (error with line number), not as a robot that is immediately lost. |
+| Grid larger than 50×50 or with a negative dimension | Invalid input. |
+| Instruction string of 100 characters or more | Invalid input (the spec says "less than 100"). |
+| Instruction character other than `L`, `R`, `F` | Invalid input; the whole run is rejected rather than skipping the character. |
+| Direction letter in lower case (`n`, `e` …) | Invalid input — directions are case-sensitive. |
+| Odd number of robot lines (position without instructions) | Invalid input. |
+| Empty instruction string | Allowed — the robot simply stays where it started. |
+| Output line endings | Always `\n`, regardless of platform. |
+| Errors | Written to `stderr` with the offending line number; the process exits with code `1`. Successful runs exit `0`. |
+
 ## Getting started
 
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 
-### 1. Clone the repository
+### Build and test
 
 ```bash
 git clone https://github.com/deltarem/MartianRobotsSln.git
 cd MartianRobotsSln
-```
-
-### 2. Verify .NET installation
-
-```bash
-dotnet --version
-```
-
-For .NET 10 Preview:
-
-```bash
-dotnet --list-sdks
-```
-
-### 3. Restore packages
-
-```bash
-dotnet restore
-```
-
-### 4. Build the solution
-
-```bash
 dotnet build
-```
-
-Or Release build:
-
-```bash
-dotnet build -c Release
-```
-
-### 5. Run unit tests
-
-```bash
 dotnet test
 ```
 
-Tests are written with [xUnit](https://xunit.net/) and cover the single-robot and multi-robot sample scenarios above.
+### Run
 
-### 6. Run the application
+Pipe an input file in:
+
+```bash
+dotnet run --project MartianRobots < input.txt
+```
+
+Or run it interactively — the program prints a prompt (to `stderr`, so it never pollutes redirected output) and reads until end-of-input:
 
 ```bash
 dotnet run --project MartianRobots
 ```
 
-The user can enter instructions directly in the console. When finished, press Enter on the last line, then `Ctrl+Z`, then Enter.
+Finish input with `Ctrl+Z` then Enter on Windows, or `Ctrl+D` on Linux/macOS.
 
-> On Linux / macOS, use `Ctrl+D` instead of `Ctrl+Z`.
+Invalid input produces a message like the following on `stderr` and an exit code of `1`:
 
-You can also pipe a file straight in:
-
-```bash
-dotnet run --project MartianRobots < input.txt
+```
+Invalid input. Line 2: start position 9 9 is outside the 5x3 grid
 ```
 
 ## Project structure
 
 ```
 MartianRobotsSln.slnx
-├── MartianRobots/                 # Console application
-│   ├── Program.cs                 # Entry point – reads stdin, parses, runs the simulation
+├── MartianRobots/                     # Console application
+│   ├── Program.cs                     # Entry point: stdin → parser → simulator → stdout; exit codes
+│   ├── Interfaces/
+│   │   └── IRobotCommand.cs           # Command contract: Execute(Robot, SpaceGrid)
 │   ├── Models/
-│   │   ├── Robot.cs               # Position, direction, turning and movement
-│   │   └── SpaceGrid.cs           # Grid bounds, scent tracking, out-of-bounds checks
+│   │   ├── Direction.cs               # Direction enum + TurnLeft / TurnRight / GetNextPosition extensions
+│   │   ├── Robot.cs                   # Position, heading, lost flag; ignores commands once lost
+│   │   ├── SpaceGrid.cs               # Grid bounds (0..50), scent set, out-of-bounds check
+│   │   └── RobotTypes.cs              # Coordinate, RobotInstruction, SimulationInput, RobotResult
 │   ├── Services/
-│   │   ├── InstructionParser.cs   # Parses raw text input into grid size + robot definitions
-│   │   └── RobotSimulator.cs      # Runs each robot's instructions and builds the output
+│   │   ├── InstructionParser.cs       # Text → SimulationInput, with line-numbered validation
+│   │   ├── InvalidInputException.cs   # Carries the line number of the offending input
+│   │   ├── RobotSimulator.cs          # Runs each robot's commands, returns structured results
+│   │   └── OutputFormatter.cs         # RobotResult list → spec output text
 │   └── Commands/
-│       ├── IRobotCommand.cs       # Command interface
 │       ├── LeftCommand.cs
 │       ├── RightCommand.cs
-│       ├── ForwardCommand.cs      # Handles edge detection and scent logic
-│       └── RobotCommands.cs       # Maps instruction characters to command objects
-└── MartianRobotsTest/             # xUnit test project
+│       ├── ForwardCommand.cs          # Edge detection and scent logic
+│       └── RobotCommands.cs           # Maps 'L' / 'R' / 'F' to shared command instances
+└── MartianRobotsTest/                 # xUnit tests
     └── RobotSimulationTests.cs
 ```
 
 ## Design notes
 
-- **Command pattern** – each instruction character (`L`, `R`, `F`) maps to a small `IRobotCommand` implementation, so adding a new instruction means adding one class and one entry in `RobotCommands`.
-- **Separation of concerns** – parsing (`InstructionParser`), domain state (`Robot`, `SpaceGrid`) and orchestration (`RobotSimulator`) are kept apart, which keeps the core logic testable without touching the console.
-- **Scents live on the grid** – `SpaceGrid` owns the set of scented coordinates, so the rule "don't fall off where someone already did" is enforced in one place (`ForwardCommand`).
-- **Validation** – grid dimensions must be non-negative and no larger than 50×50; unknown instruction characters throw an `ArgumentException`.
+- **Pipeline of three stages** – `InstructionParser` turns text into a typed `SimulationInput`; `RobotSimulator` turns that into a list of `RobotResult`; `OutputFormatter` turns results into text. Each stage is a pure function of the previous one, so the core can be tested without the console and could be fronted by something other than stdin/stdout without changing it.
+- **Typed boundaries** – the parser produces domain objects (`Coordinate`, `Direction`, `SpaceGrid`), not tuples or strings, so nothing downstream has to re-parse or re-validate.
+- **Validation happens once, in the parser** – every problem with the input is reported as an `InvalidInputException` carrying the line number. `SpaceGrid` still enforces its own 0–50 invariant in its constructor; the parser wraps that so the user sees a line number rather than a bare `ArgumentException`.
+- **Command pattern** – each instruction character maps to an `IRobotCommand`. The three commands are stateless (all state lives in `Robot` and `SpaceGrid`), so they are created once and shared. Adding a new instruction means one class and one entry in `RobotCommands`.
+- **Lost robots ignore commands** – `Robot.Execute` is a no-op once `IsLost` is set, so the simulator loop can't accidentally keep moving a lost robot. This is enforced in the domain object rather than by a `break` in the caller.
+- **Scents live on the grid** – `SpaceGrid` owns the set of scented squares; `ForwardCommand` is the single place the rule "don't fall off where someone already did" is applied.
+- **`SimulationInput` is single-use** – it carries the live `SpaceGrid` the simulation mutates (scents accumulate), so the same input object should not be run twice.
+
+## Tests
+
+`dotnet test` runs the xUnit suite, which covers:
+
+- the single-robot and three-robot sample scenarios from the brief, end-to-end through parser, simulator and formatter;
+- parser rejection of empty input, malformed grid and position lines, non-integer values, bad direction letters, unknown instruction characters, instruction strings of 100+ characters, and an odd number of robot lines — each asserting the reported line number;
+- CRLF line endings and extra whitespace being accepted;
+- a lost robot ignoring all subsequent commands, both at the `Robot` level and through the simulator.
+
+## What I would build around it if it went further
+
+The brief asked for the program only, so none of this is implemented. If it were going into a real system:
+
+- **Input/output abstractions** – an `IInstructionSource` / `IResultSink` pair so the same core can be driven from a file, an HTTP endpoint or a message queue. The current `Program.cs` would become one thin adapter among several.
+- **Dependency injection** – register the parser, simulator and formatter behind interfaces with `Microsoft.Extensions.Hosting`, so an API host can inject them and tests can substitute fakes.
+- **Web API** – a minimal-API `POST /simulate` accepting the raw instruction text (or a JSON model) and returning `RobotResult[]` as JSON; `RobotResult` is already a plain record so it serialises as-is.
+- **Persistence** – if runs need to be stored, a small table of runs and results keyed by an ID. Because `SpaceGrid` state is per-run, nothing else needs to change.
+- **Property-based tests** with FsCheck for the direction tables (four left turns always return to the start; `L` then `R` is the identity; a robot on an unbounded grid never becomes lost).
+- **CI** – a GitHub Actions workflow running `dotnet build` and `dotnet test` on push, with `dotnet format --verify-no-changes` to keep style consistent.
+- **Observability** – structured logging of each robot's final state and any rejected input, which becomes useful once this runs as a service.
 
 ## Use of AI tooling
 
-I used AI to set up the project structure, draft the initial types and tests, and prepare this README document. I did not use AI to develop the code. I could have added more unit tests and validation, but as this was a 2–3-hour project, I tried to keep it concise.
+I used AI at two points. At the start, to scaffold the project structure and draft the initial types, tests and this README; the core logic was written by me. After the first working version, I used it as a code reviewer: it read the repository and suggested improvements to code quality (typed models instead of tuples, structured results instead of string output, line-numbered validation, moving the lost-robot guard into `Robot`, sharing command instances) and pointed out gaps in the unit tests, which I then implemented. The design decisions and the assumptions above are my own.
 
 ## Licence
 
