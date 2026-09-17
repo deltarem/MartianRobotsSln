@@ -7,14 +7,6 @@ using System.Xml.Serialization;
 
 namespace MartianRobots.Models
 {
-    public record Coordinate(int x, int y);
-    public enum DirectionEnum
-    {
-        N,
-        E,
-        S,
-        W
-    }
 
     public class Robot
     {
@@ -62,10 +54,10 @@ namespace MartianRobots.Models
         {
             return Direction switch
             {
-                DirectionEnum.N => new Coordinate(Position.x, Position.y + 1),
-                DirectionEnum.E => new Coordinate(Position.x + 1, Position.y),
-                DirectionEnum.S => new Coordinate(Position.x, Position.y - 1),
-                DirectionEnum.W => new Coordinate(Position.x - 1, Position.y),
+                DirectionEnum.N => new Coordinate(Position.X, Position.Y + 1),
+                DirectionEnum.E => new Coordinate(Position.X + 1, Position.Y),
+                DirectionEnum.S => new Coordinate(Position.X, Position.Y - 1),
+                DirectionEnum.W => new Coordinate(Position.X - 1, Position.Y),
                 _ => Position
             };
         }

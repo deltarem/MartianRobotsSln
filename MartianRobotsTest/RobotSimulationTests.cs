@@ -15,13 +15,10 @@ namespace MartianRobotsTest
             string expectedOutput = "1 1 E";
 
 
-
             // Act
-            var parsedInstructions = InstructionParser.Parse(sampleInstructions);
-            var output = robotSimulator.Execute(parsedInstructions.gridSize, parsedInstructions.robots);             
+            var output = OutputFormatter.Format(robotSimulator.Execute(InstructionParser.Parse(sampleInstructions)));             
             // Assert
             Assert.Equal(expectedOutput, output);
-
         }
 
 
@@ -37,16 +34,12 @@ namespace MartianRobotsTest
 
             string expectedOutput = "1 1 E\n3 3 N LOST\n2 3 S";
 
-
-
-
             // Act
-            var parsedInstructions = InstructionParser.Parse(sampleInstructions);
-            var output = robotSimulator.Execute(parsedInstructions.gridSize, parsedInstructions.robots);
+            var output = OutputFormatter.Format(robotSimulator.Execute(InstructionParser.Parse(sampleInstructions)));
             // Assert
             Assert.Equal(expectedOutput, output);
 
         }
-   
     }
+   
 }

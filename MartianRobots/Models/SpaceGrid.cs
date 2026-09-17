@@ -5,6 +5,8 @@ using System.Text;
 
 namespace MartianRobots.Models
 {
+   
+
     public class SpaceGrid
     {
         private int spaceGridMaxX = 50;
@@ -16,7 +18,7 @@ namespace MartianRobots.Models
         private readonly HashSet<Coordinate> _scents = new();
 
         public bool IsOutOfBounds(Coordinate coordinate) =>
-          coordinate.x < 0 || coordinate.x > MaxX || coordinate.y < 0 || coordinate.y > MaxY;
+          coordinate.X < 0 || coordinate.X > MaxX || coordinate.Y < 0 || coordinate.Y > MaxY;
 
         public bool HasScent(Coordinate coordinate) => _scents.Contains(coordinate);
 

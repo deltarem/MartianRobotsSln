@@ -6,9 +6,16 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace MartianRobots.Services
 {
+
+    /*
+     * 
+     *     public sealed record RobotInstruction(Coordinate Start, DirectionEnum Facing, string Commands);
+    public sealed record SimulationInput(SpaceGrid Grid, IReadOnlyList<RobotInstruction> Robots);
+
+     */
     public static class InstructionParser
     {
-        public static ( (int, int) gridSize, ((int robotX, int robotY, string robotDirection) robotPosition, string commandSequence)[] robots) Parse(string instructions)
+        public static SimulationInput Parse(string instructions)
         {
 
             var lines = instructions
@@ -27,7 +34,7 @@ namespace MartianRobots.Services
             {
                 throw new Exception($"Line 1: expected 'maxX maxY', got '{lines[0]}'");
             }
-            (int maxX, int maxY) gridSize = (int.Parse(gridSizeParts[0]), int.Parse(gridSizeParts[1]));
+            GridSize gridSize = new GridSize(int.Parse(gridSizeParts[0]), int.Parse(gridSizeParts[1]));
 
 
             var robotLines = lines.Skip(1).ToList();
@@ -36,7 +43,7 @@ namespace MartianRobots.Services
                 throw new Exception("Each robot needs a position line followed by an instruction line");
             }
 
-            var robots = new List<((int robotX, int robotY, string robotDirection) robotPosition, string commandSequence)>();
+            var robots = new List<RobotInstruction>();
             
             for (var i = 0; i < robotLines.Count; i += 2)
             {
@@ -47,10 +54,10 @@ namespace MartianRobots.Services
 
                 string commandSequence = robotLines[i + 1];
 
-                robots.Add(((robotX, robotY, robotDirection.ToString()), commandSequence));
+                robots.Add(new RobotInstruction(new Coordinate(robotX, robotY), robotDirection, commandSequence));                
             }   
 
-            return (gridSize, robots.ToArray());
+            return new SimulationInput(gridSize, robots);
         }
 
 
